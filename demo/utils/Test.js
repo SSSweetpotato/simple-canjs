@@ -1,1 +1,1 @@
-alert("load Test.js is ok...");
+//alert("load Test.js is ok...");

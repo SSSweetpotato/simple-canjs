@@ -1,7 +1,6 @@
-define([ "myFramework/ui/Dialog" ],
+define([],
 		function() {
-
-			function setControl(dom, events) {
+			function setControl(dom,events){
 				if (dom.getData("control"))
 					return;
 				var _Control = can.Control.extend(events);
@@ -30,128 +29,131 @@ define([ "myFramework/ui/Dialog" ],
 						_self.on(event, func);
 					});
 				};
-			}
-			;
+			};
 
 			function PageObject(options) {
 				var _dom = undefined;
 				var _stache = undefined;
 
 				// 复制其它方法到当前对象,构建viewModel
-				this.cache = true;
-				this.helpers = {};
-				this.dailog = false;
-				this.onLoad = undefined;// parameter:page
-				this.onShow = undefined;// parameter:page,dom
-				this.onHide = undefined// parameter:page,dom
-				this.events = undefined;
-				this.name = undefined;
+				var _cache = options.cache == undefined ? true : options.cache;
+				var _helpers = options.helpers || {};
+				var _onCreate = options.onCreate || undefined;// parameter:page
+				var _onShow = options.onShow == undefined ? undefined
+						: options.onShow;// parameter:page,dom
+				var _onHide = options.onHide = undefined ? undefined
+						: options.onHide;// parameter:page,dom
+				var _data = options.data || {};
+				var _ControlEvents = options.events || undefined;
 				var _self = this;
 				can.each(options, function(value, key) {
-					// 除data 外，全部注入到page对象
+					if (key == "cache")
+						return;
+					if (key == "helpers")
+						return;
+					if (key == "onCreate")
+						return;
+					if (key == "onShow")
+						return;
+					if (key == "onHide")
+						return;
 					if (key == "data")
+						return;
+					if (key == "events")
 						return;
 					_self[key] = value;
 
 				});
 				this.viewModel = {
-					data : new can.Map(options.data == undefined ? {} : (can
-							.isFunction(options.data) ? options.data()
-							: options.data)),
+					data : new can.Map(_data),
 					page : this
 				};
-				// 增加组件注入的事件列表
-				this.elementEvents = [];
-				this.addEvent = function(event) {
-					this.elementEvents.push(event);
-					if (event.handler) {
-						var $el = $(event.el);
+				//增加组件注入的事件列表
+				this.events=[];
+				this.addEvent=function(event){
+					this.events.push(event);
+					if (event.handler){
+						var $el=$(event.el);
 						$el.off(event.handler);
-						$el.on(event.type, event.handler);
+						$el.on(event.type,event.handler);
 					}
 				}
-
+				
+				var _visible =false;
+				this.visible =function(){return _visible};
 				this._appendTo = function($el) {
-					if (this.cache) {
-						if (this.dialog)
-							_dom.appendTo($("body"));
-						else
-							_dom.appendTo($el);
-						if (this.onShow)
-							this.onShow(this);
+					if (_cache) {
+						_dom.appendTo($el);
+						_visible=true;
+						if (_onShow)
+							_onShow(this);
 					} else {
 						_dom = new MF.Template.Stache(_stache, this.viewModel,
-								this.helpers);
-						if (this.events && this.events.length > 0)
-							setControl(_dom, _ControlEvents);
-						if (this.onLoad) {
-							this.onLoad(this);
+								_helpers);
+						setControl(_dom,_ControlEvents);
+						if (_onCreate) {
+							_onCreate(this);
 						}
-						if (this.dialog)
-							_dom.appendTo($("body"));
-						else
-							_dom.appendTo($el);
-						if (this.onShow)
-							this.onShow(this);
+						_dom.appendTo($el);
+						_visible=true;
+						if (_onShow)
+							_onShow(this);
 					}
 				}
 
 				this._remove = function() {
-					if (!this.cache) {
+					if (!_cache) {
 						var _result = true;
-						if (this.onHide) {
-							_result = this.onHide(this);
+						if (_onHide) {
+							_result = _onHide(this);
 							if (_result == undefined)
 								_result = true;
 						}
 						if (_result) {
 							_dom.remove();
 							_dom = undefined;
+							_visible=false;
 						}
 					} else {
 						var _result = true;
-						if (this.onHide) {
-							_result = this.onHide(this);
+						if (_onHide) {
+							_result = _onHide(this);
 							if (_result == undefined)
 								_result = true;
 						}
 						if (_result) {
 							_dom.detach();
+							_visible=false;
 						}
 					}
 				}
 
+				this.name = undefined;
+				this.data = can.isFunction(options.data) ? options.data()
+						: options.data;
+
 				this.setStache = function(template) {
-					var _template = this.dialog ? "<dialog>" + template
-							+ "</dialog>" : template;
-					if (this.cache) {
-						_dom = new MF.Template.Stache(_template,
-								this.viewModel, this.helpers);
-						if (this.events)
-							setControl(_dom, this.events);
+					if (_cache) {
+						_dom = new MF.Template.Stache(template, this.viewModel,
+								_helpers);
+						setControl(_dom,_ControlEvents);
 						_stache = undefined;
-						if (this.onLoad) {
-							this.onLoad(this);
+						if (_onCreate) {
+							_onCreate(this);
 						}
 					} else {
 						_dom = undefined;
-						_stache = _template;
+						_stache = template;
 					}
 				}
 
 				this.setHtml = function(html) {
-					if (this.dialog) {
-						this.cache = false;
-						this.setStache(html);
-					} else {
-						_dom = new MF.Template.Html(html);
-						if (this.events)
-							setControl(_dom, this.events);
-						_stache = undefined;
-						cache = true;
-						if (this.onLoad) {
-							this.onLoad(this);
-						}
+					_dom = new MF.Template.Html(html);
+					setControl(_dom,_ControlEvents);
+					_stache = undefined;
+					_cache = true;
+					if (_onCreate) {
+						_onCreate(this);
 					}
 				}
 
@@ -165,17 +167,13 @@ define([ "myFramework/ui/Dialog" ],
 
 				this.show = function() {
 					var _page = $("#page");
-					if (this.dialog) {
-						this._appendTo(_page);
-					} else {
-						if (_page) {
-							if (_page.attr("data-page") != this.name) {
-								_page.attr("data-page", this.name);
-								this._appendTo(_page);
-							}
-						} else {
-
+					if (_page) {
+						if (_page.attr("data-page") != this.name) {
+							_page.attr("data-page", this.name);
+							this._appendTo(_page);
 						}
+					} else {
+
 					}
 				};
 				this.backPageHide = function() {
@@ -186,27 +184,12 @@ define([ "myFramework/ui/Dialog" ],
 					this._remove();
 				};
 				this.hide = function() {
-					if (this.dialog) {
-						this._remove();
-					} else {
-						this.backPageHide();
-						var _window = getApp().viewModel.window;
-						if (_window.backList) {
-							_window.backList.push(this);
-							_window.attr("showLeftButton", true);
-						}
+					this.backPageHide();
+					var _window = getApp().viewModel.window;
+					if (_window.backList) {
+						_window.backList.push(this);
+						_window.attr("showLeftButton", true);
 					}
-				};
-				this.getViewModel = function(selector) {
-					if (selector == undefined || selector == "")
-						return this.viewModel;
-					var _$dom = this.getDom().$dom;
-					var _els = _$dom.find(selector);
-					var result = [];
-					_els.each(function(index, el) {
-						result.push($(el).viewModel());
-					});
-					return result;
 				}
 			}
 

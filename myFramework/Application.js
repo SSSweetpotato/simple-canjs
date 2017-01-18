@@ -16,10 +16,8 @@ define(
 				if (properties.window) {
 					_window.barTitleText = properties.window.barTitleText ? properties.window.barTitleText
 							: undefined;
-					if (properties.window.showLeftButton!=undefined)
-						_window.showLeftButton=properties.window.showLeftButton;
-					if (properties.window.showMenuButton!=undefined)
-						_window.showMenuButton=properties.window.showMenuButton;
+					// _window.showLeftButton=properties.window.showLeftButton;
+					// _window.showMenuButton=properties.window.showMenuButton;
 				}
 
 				var _tabBar = {
@@ -42,11 +40,11 @@ define(
 			function _App(properties) {
 				// 属性
 				this.template = "App.stache";
-				this.helpers = [];
-				this.pages = [];
-				this.menu = [];
+				this.helpers = properties.helpers || [];
+				this.pages = properties.pages || [];
+				this.menu = properties.menu || [];
 				// 加入imports属性，增加加载文件
-				this.imports = _defaultImports(undefined);
+				this.imports = properties.imports || [];
 				// except pages
 				this.viewModel = _buildViewModel(properties);
 				// 3 其它内容
@@ -55,6 +53,14 @@ define(
 					if (key == "window")
 						return;
 					if (key == "tabBar")
+						return;
+					if (key == "pages")
+						return;
+					if (key == "imports")
+						return;
+					if (key == "menu")
+						return;
+					if (key == "helpers")
 						return;
 					_self[key] = value;
 				});
@@ -121,25 +127,13 @@ define(
 			;
 
 			
-			function _defaultImports(extra){
-				var result=[ "myFramework/ui/popup/Menu", "myFramework/ui/View",
-								"myFramework/ui/form/Form", "myFramework/ui/TitleBar",
-								"myFramework/ui/TabBar","myFramework/ui/form/Dropdown","myFramework/ui/form/Dropdown_mobi","myFramework/ui/form/Vcode","myFramework/ui/form/Search",
-			"myFramework/ui/form/Date","myFramework/ui/form/Multitext",
-			"myFramework/ui/form/Dropdown","myFramework/ui/form/Dropdown_mobi","myFramework/ui/form/Radio","myFramework/ui/form/Checkbox",
-			"myFramework/ui/form/Groupopt"];
-				if (extra){
-					result.push(extra);
-				}
-				return result;
-			};
+
 			// 注入mzui
 			_Popup = new $.Display({});
 
 			return {
 				App:App,
 				getApp:getApp,
-				Popup:_Popup,
-				defaultImports:_defaultImports
+				Popup:_Popup
 			};
 		});

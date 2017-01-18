@@ -43,15 +43,10 @@ App({
 				action : function(){
 					MF.Navigator.redirect("../poc/index.html");
 				}
-			},
-			{
-				text : "Toast",
-				icon : "icon-home",
-				action : function(){
-					;
-				}
 			}]
 		},
 	pages : [ "page1/index", "page2/index", "html!page2/test" ],
-	imports : MF.defaultImports(["utils/Test"])
+	imports : [ "utils/Test", "myFramework/ui/popup/Menu",
+	            "myFramework/ui/View","myFramework/ui/form/Form",
+			"myFramework/ui/TitleBar", "myFramework/ui/TabBar" ]
 });

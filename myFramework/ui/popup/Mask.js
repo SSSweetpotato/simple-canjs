@@ -17,12 +17,10 @@ function toast(message) {
 		placement : "center",
 		backdrop : true,
 		display : "modal",
-		backdropDismiss : true,
-		autoHide : 1000,
-		animate:100,//执行动画
-		duration:100,//执行动画
-		targetClass:"activeClass flex justify-center align-middle"
-
+		backdropDismiss : false,
+		autoHide : false,
+		animate:0,//不执行动画
+		duration:0//不执行动画
 	});
 };
 
